@@ -31,71 +31,36 @@ const startFacade = async () => {
     });
 
     app.get("/items", query, async (req, res, next) => {
-        const url = urlWithQuery("/matches", res);
+        const url = urlWithQuery("/recipes", res);
+
+        console.log("items -> ", true);
 
         let result = await fetch(url);
-        const { matches } = result || {};
-        const items = parser.parseMatches(matches);
+        const { recipes } = result || {};
 
         res.locals.response = {
             success: result.success,
-            items,
-        };
-
-        next();
-    });
-
-    app.get("/items/more", query, async (req, res, next) => {
-        const url = urlWithQuery("/matches/more", res);
-
-        let result = await fetch(url);
-        const { matches } = result || {};
-        const items = parser.parseMatches(matches);
-
-        res.locals.response = {
-            success: result.success,
-            items,
+            items: recipes,
         };
 
         next();
     });
 
     app.get("/one/:id", query, async (req, res, next) => {
+        console.log("one/:id -> ", true);
+
         const { id } = req.params;
-        const url = urlWithQuery(`/profile/${id}`, res);
+        const url = urlWithQuery(`/recipes/${id}`, res);
         let result = await fetch(url);
-        const { profile } = result;
+        const { recipe } = result;
 
-        const item = parser.parseProfile(profile);
-
-        const success = result.success && item;
+        const success = result.success && recipe;
 
         res.locals.response = {
             success,
-            item: item || {},
+            item: recipe || {},
         };
 
-        next();
-    });
-
-    app.post("/one/:id/yes", query, async (req, res, next) => {
-        const { id } = req.params;
-        const { message } = req.body;
-        const url = urlWithQuery(`/profile/${id}/approve`, res);
-        console.log("url -> ", url);
-        res.locals.response = await fetch(url, "POST", {
-            message,
-        });
-        await delay(500);
-        next();
-    });
-
-    app.post("/one/:id/no", query, async (req, res, next) => {
-        const { id } = req.params;
-        const url = urlWithQuery(`/profile/${id}/pass`, res);
-        console.log("url -> ", url);
-        res.locals.response = await fetch(url, "POST");
-        await delay(500);
         next();
     });
 
