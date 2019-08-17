@@ -1,57 +1,76 @@
 const config = require("poe-utils/config");
 
-const parseMatches = matches => {
-    return (matches || []).reduce((output, match) => {
-        const { id = "" } = match;
+const trim = (obj, arr) => {
+    return Object.keys(obj)
+        .filter(key => arr.indexOf(key) === -1)
+        .reduce((output, key) => {
+            output[key] = obj[key];
+            return output;
+        }, {});
+};
+
+const parseImage = url => {
+    return `${config.socketsUrl}/image?url=${encodeURIComponent(
+        url.replace("webp", "jpg"),
+    )}`;
+};
+
+const parseRecipes = recipes => {
+    return (recipes || []).reduce((output, recipe) => {
+        const { id = "", image = "" } = recipe || {};
 
         output[id] = {
-            ...match,
-            title: match.name,
-            subtitle: "בת " + match.age,
-            isFull: false,
+            ...trim(recipe, ["image"]),
+            imageUrl: parseImage(image),
         };
+
         return output;
     }, {});
 };
 
-const parseProfile = profile => {
-    const { essays = [], images = [] } = profile || {};
+const parseRecipe = recipe => {
+    if (!recipe) return null;
 
-    if (!profile) return null;
+    const {
+        image = "",
+        ingredients = [],
+        instructions = [],
+        nutritionImageUrl,
+    } = recipe || {};
 
-    const paragraphs = essays.map(essay => {
-        const { title, content } = essay || {};
+    const paragraphs1 = [
+        {
+            title: "מצרכים",
+            content: "",
+            list: ingredients,
+            listType: "ul",
+        },
+    ];
 
-        return {
-            title,
-            content,
-        };
-    });
-
-    const _images = images.map(image => {
-        return `${config.socketsUrl}/image?url=${encodeURIComponent(
-            image.replace("webp", "jpg"),
-        )}`;
-    });
-
-    const info = [
-        profile.city,
-        profile.looking,
-        profile.info,
-        profile.match,
-    ].filter(i => i);
+    const paragraphs2 = [
+        {
+            title: "הוראות הכנה",
+            content: "",
+            list: instructions,
+            listType: "ol",
+        },
+    ];
 
     return {
-        images: _images,
-        isGreen: profile.online,
-        name: profile.username,
-        paragraphs,
-        info,
-        isFull: true,
+        ...trim(recipe, [
+            "image",
+            "ingredients",
+            "instructions",
+            "nutritionImageUrl",
+        ]),
+        imageUrl: parseImage(image),
+        sideImageUrl: nutritionImageUrl,
+        paragraphs1,
+        paragraphs2,
     };
 };
 
 module.exports = {
-    parseMatches,
-    parseProfile,
+    parseRecipes,
+    parseRecipe,
 };

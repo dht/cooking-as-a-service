@@ -40,7 +40,7 @@ const startFacade = async () => {
 
         res.locals.response = {
             success: result.success,
-            items: recipes,
+            items: parser.parseRecipes(recipes),
         };
 
         next();
@@ -54,11 +54,11 @@ const startFacade = async () => {
         let result = await fetch(url);
         const { recipe } = result;
 
-        const success = result.success && recipe;
+        const success = result.success && typeof recipe === "object";
 
         res.locals.response = {
             success,
-            item: recipe || {},
+            item: parser.parseRecipe(recipe || {}),
         };
 
         next();
